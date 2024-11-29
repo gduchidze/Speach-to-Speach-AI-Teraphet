@@ -39,7 +39,7 @@ const Chatbot = () => {
     // const aiResponse1 = await sendMessageToAI(text);
     const aiResponse = await new Promise<string>((resolve) => {
         setTimeout(() => {
-          resolve("Hello");
+          resolve("Hey");
         }, 2000);
       });
 
@@ -49,8 +49,12 @@ const Chatbot = () => {
     setLoading(false);
   }
 
-  return <div className="flex flex-col h-screen w-screen ">
-    <MessageList messages={messages} loading={loading}/>
+  const firstQuestion = (text:string) =>{
+    setMessages((prev:IMessages[]) => [...prev, {sender:"ai", text}]);
+  }
+
+  return <div className="flex flex-col h-screen w-[100%] max-w-[1900px] m-auto">
+    <MessageList messages={messages} loading={loading} onSend={firstQuestion}/>
     <MessageInput onSend={handleSend}/>
   </div>;
 };
