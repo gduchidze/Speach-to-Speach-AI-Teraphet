@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { Bars } from "react-loader-spinner";
+
 
 const AudioRecorder: React.FC = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -10,10 +12,11 @@ const AudioRecorder: React.FC = () => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserNodeRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string>("");
 
   useEffect(() => {
     return () => {
-      URL.revokeObjectURL(audioUrl);
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
       if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
     };
@@ -29,7 +32,7 @@ const AudioRecorder: React.FC = () => {
         if (!silenceTimeoutRef.current) {
           silenceTimeoutRef.current = setTimeout(() => {
             console.log("Silence detected, stopping recording...");
-            stopRecording();
+            stopRecording(true); // Pass true to auto-upload
           }, 2000);
         }
       } else {
@@ -45,11 +48,12 @@ const AudioRecorder: React.FC = () => {
 
   const startRecording = async () => {
     try {
+      setAudioBlob(null);
+      setUploadStatus("");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioStreamRef.current = stream;
       mediaRecorderRef.current = new MediaRecorder(stream);
 
-      setAudioBlob(null);
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
         setAudioUrl(null);
@@ -68,12 +72,18 @@ const AudioRecorder: React.FC = () => {
       const dataArray = new Uint8Array(analyserNode.fftSize);
       dataArrayRef.current = dataArray;
 
+      const audioChunks: BlobPart[] = [];
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          setAudioBlob(event.data);
-          const newAudioUrl = URL.createObjectURL(event.data);
-          setAudioUrl(newAudioUrl);
+          audioChunks.push(event.data);
         }
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        setAudioBlob(audioBlob);
+        const newAudioUrl = URL.createObjectURL(audioBlob);
+        setAudioUrl(newAudioUrl);
       };
 
       mediaRecorderRef.current.start();
@@ -81,14 +91,15 @@ const AudioRecorder: React.FC = () => {
       checkSilence();
     } catch (error) {
       console.error("Error starting recording: ", error);
+      setUploadStatus("Error starting recording");
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = async (autoUpload: boolean = false) => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       if (audioStreamRef.current) {
-        audioStreamRef.current.getTracks().forEach(track => track.stop());
+        audioStreamRef.current.getTracks().forEach((track) => track.stop());
       }
     }
     if (silenceTimeoutRef.current) {
@@ -102,11 +113,16 @@ const AudioRecorder: React.FC = () => {
       audioContextRef.current = null;
     }
     setIsRecording(false);
+
+    // Auto-upload if specified or silence detected
+    if (autoUpload) {
+      await uploadAudio();
+    }
   };
 
   const uploadAudio = async () => {
     if (!audioBlob) {
-      console.error("No audio recorded");
+      setUploadStatus("No audio recorded");
       return;
     }
 
@@ -114,33 +130,59 @@ const AudioRecorder: React.FC = () => {
     formData.append("audio", audioBlob, "recorded-audio.wav");
 
     try {
-      const response = await fetch('http://localhost:5000/upload_audio', {
-        method: 'POST',
+      setUploadStatus("Uploading...");
+      const response = await fetch("http://localhost:5000/upload_audio", {
+        method: "POST",
         body: formData,
       });
       const data = await response.json();
       console.log("Audio uploaded successfully:", data);
+      setUploadStatus("Upload successful");
     } catch (error) {
       console.error("Error uploading audio:", error);
+      setUploadStatus("Upload failed");
     }
   };
 
   return (
-    <div className='flex flex-col items-center justify-center gap-3 w-[100%]'>
-      <button onClick={isRecording ? stopRecording : startRecording}>
-        <div className='flex flex-col items-center'>
-          {isRecording ? <p>Stop Recording</p> : <p>Start Recording</p>}
-          {isRecording ? <img src="stop.svg" alt="Stop recording" className='w-9 h-9'/> : <img src='start.svg' alt='Start recording' className='w-9 h-9' />}
-        </div>
+    <div className="flex flex-col items-center justify-center gap-3 w-full">
+      <button
+        onClick={isRecording ? () => stopRecording() : startRecording}
+        className="flex flex-col items-center"
+      >
+        {isRecording ? (
+          <>
+
+            <Bars
+              height="30"
+              width="30"
+              color="#000"
+              ariaLabel="bars-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+              visible={true}
+            />
+          </>
+        ) : (
+          <>
+            <img src="audio.png" alt="Start recording" className="w-9 h-9" />
+          </>
+        )}
       </button>
+
       {audioBlob && !isRecording && (
-        <div className='flex flex-col items-center'>
-          <p>If you want to listen to the audio:</p>
+        <div className="flex flex-col items-center gap-2">
+          {/* <p>Recorded Audio:</p>
           <audio controls>
-            <source src={URL.createObjectURL(audioBlob)} type="audio/wav" />
+            <source src={audioUrl || undefined} type="audio/wav" />
             Your browser does not support the audio element.
-          </audio>
-          <img src="upload.svg" alt="Upload voice" onClick={uploadAudio} className='w-9 h-9'/>
+          </audio> */}
+          <div className="flex gap-2 items-center">
+            <img src="send.png" alt="Send voice"
+              onClick={uploadAudio}
+              className="w-8 h-8 cursor-pointer"
+            />
+          </div>
         </div>
       )}
     </div>

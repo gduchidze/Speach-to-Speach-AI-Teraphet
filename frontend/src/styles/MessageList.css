@@ -36,6 +36,7 @@
 }
 .ai-message{
     animation: messageAi .3s ease-in-out;
+    background-color: #e2e2e20e;
 }
 @keyframes messageUser{
     from{
@@ -53,3 +54,15 @@
         transform: translate(0px);
     }
 }
+
+
+@keyframes elegantBounce {
+    0%, 80%, 100% { 
+      transform: translateY(0);
+      opacity: 0.4;
+    }
+    40% { 
+      transform: translateY(-4px);
+      opacity: 1;
+    }
+  }
