@@ -22,14 +22,14 @@
 }
 
 .user-message{
-    animation: messageUser .2s ease-in-out;
+    animation: messageUser .3s ease-in-out;
 }
 .ai-message{
-    animation: messageAi .5s ease-in-out;
+    animation: messageAi .3s ease-in-out;
 }
 @keyframes messageUser{
     from{
-        transform: translateX(150px);
+        transform: translateY(50px);
     }
     to{
         transform: translate(0px);
@@ -37,7 +37,7 @@
 }
 @keyframes messageAi{
     from{
-        transform: translateX(-150px);
+        transform: translateY(50px);
     }
     to{
         transform: translate(0px);
