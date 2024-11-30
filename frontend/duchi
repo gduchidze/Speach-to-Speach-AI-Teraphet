@@ -1,0 +1,80 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { IoIosSend } from 'react-icons/io';
+import { MdKeyboardVoice } from 'react-icons/md';
+
+const MessageInput = ({ messages, onSend, loading }) => {
+  const [input, setInput] = useState("");
+  const [rows, setRows] = useState(1);
+  const textareaRef = useRef(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(scrollHeight, 120)}px`;
+      setRows(Math.min(Math.floor(scrollHeight / 24), 5));
+    }
+  }, [input]);
+
+  const handleSend = () => {
+    if (input.trim() !== "") {
+      onSend(input);
+      setInput("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+      setRows(1);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-10 pb-6">
+      <div className="w-full max-w-4xl mx-auto px-4">
+        <div className="relative flex items-end bg-white rounded-2xl shadow-lg border border-gray-100 p-3 transition-all duration-300 hover:shadow-xl">
+          <textarea
+            ref={textareaRef}
+            className="flex-1 outline-none text-gray-700 bg-transparent text-lg resize-none py-2 px-3 min-h-[44px] max-h-[120px] placeholder-gray-400"
+            placeholder={loading ? "Please wait..." : "Type your message..."}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={rows}
+            disabled={loading}
+          />
+          <div className="flex items-center gap-3 pl-2">
+            <button
+              onClick={handleSend}
+              className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+              disabled={loading}
+              aria-label="Voice input"
+            >
+              <MdKeyboardVoice className="w-6 h-6" />
+            </button>
+            <button
+              onClick={handleSend}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                input.trim()
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'text-gray-400 cursor-not-allowed'
+              }`}
+              disabled={!input.trim() || loading}
+              aria-label="Send message"
+            >
+              <IoIosSend className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MessageInput;
