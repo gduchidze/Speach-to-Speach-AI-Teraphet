@@ -1,35 +1,49 @@
 import { useState } from "react";
+import { IoIosSend } from "react-icons/io";
+import { MdKeyboardVoice } from "react-icons/md";
 
 interface MessageInputProps {
   onSend: (text: string) => void;
 }
 
-const MessageInput : React.FC<MessageInputProps> = ({onSend}) => {
-
+const MessageInput: React.FC<MessageInputProps> = ({ onSend }) => {
   const [input, setInput] = useState<string>("");
-  const handleSend = () =>{
-    if(input.trim() !== ""){
+
+  const handleSend = () => {
+    if (input.trim() !== "") {
       onSend(input);
       setInput("");
     }
-    
-  }
-  return (
-    <div className="flex flex-wrap items-center w-[100%] m-auto pb-10 justify-center gap-3 border-t-[1px]" >
-      <input
-      type="text"
-      className="border-none mt-2 outline-none rounded-[20px] p-3 w-1/2 text-[1rem]"
-      placeholder="Type your message"
-      value={input}
-      onChange={(e)=> setInput(e.target.value)}
-      onKeyDown={(e)=> e.key == "Enter" && handleSend() } 
-      />
-      <button onClick={()=>handleSend()} className="mt-2 p-3 border rounded-[20px] border-solid
-       border-gray-500 text-white text-[1rem] outline-none
-       ease-in-out duration-300 hover:bg-gray-500 hover:text-neutral-100
-       ">Send</button>
-    </div>
-  )
-}
+  };
 
-export default MessageInput
+  return (
+    <div className="w-full max-w-4xl mx-auto pb-3">
+      <div className="flex items-center justify-between bg-white  rounded-xl p-1 space-x-4 w-[80%] sm:w-[100%] sm:p-3 m-auto shadow-2xl shadow-gray-500/50">
+        <input
+          type="text"
+          className="outline-none rounded-lg p-3 text-lg placeholder-gray-500 transition-all w-[80%] "
+          placeholder="Type your message"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSend}
+                className=" rounded-lg bg-[#e5e7eb]  text-black shadow-md hover:bg-[#F8F8FF] focus:ring-2   transition-all duration-300  text-sm p-2 sm:text-lg sm:p-3 hover:scale-105"
+          >
+            <MdKeyboardVoice />
+          </button>
+          <button
+            onClick={handleSend}
+                className=" rounded-lg bg-[#e5e7eb]  text-black shadow-md hover:bg-[#F8F8FF] focus:ring-2  transition-all duration-300  text-sm p-2 sm:text-lg sm:p-3 hover:scale-105"
+          >
+            <IoIosSend />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MessageInput;

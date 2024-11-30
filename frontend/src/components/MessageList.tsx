@@ -26,20 +26,20 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, onSend }) 
   
 
     return (
-      <div className="list-box mb-3 px-10 py-5 overflow-y-auto overflow-x-hidden h-screen flex flex-col gap-2">
+      <section className="list-box mb-3 px-10 py-5 overflow-y-auto overflow-x-hidden h-screen flex flex-col gap-2">
         {messages.map((message, index: number) => (
           <div
             key={index}
-            className={`w-fit max-w-[45%] break-words rounded-lg p-2 text-[1rem] ${
+            className={`flex flex-col w-fit max-w-[45%] break-words rounded-lg p-2 text-[1rem] ${
               message.sender === "user"
-                ? "user-message bg-slate-500 text-white ml-auto" 
-                : "ai-message text-white rounded border border-solid border-stone-200 mr-auto" 
+                ? "user-message  text-black ml-auto" 
+                : "ai-message text-black mr-auto" 
             }`}
           >
-            {message.text}
+            {message.sender === "user" ? <div className="flex flex-col-reverse ">{message.text} <img src="user1.svg"  alt="User" className="w-6 h-6 self-end"/></div> : <div className="flex flex-col-reverse ">{message.text} <img src="robot.svg"  alt="AI" className="w-6 h-6"/></div>  }
           </div>
         ))}
-        {loading && <div className="flex items-center text-center gap-2 text-center mr-auto text-gray-600">
+        {loading && <div className="flex items-center text-center gap-2 mr-auto text-gray-600">
           AI is typing
           <Comment
           visible={true}
@@ -52,7 +52,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, onSend }) 
           />
           </div>}
           <div ref={messagesEndRef} />
-      </div>
+      </section>
     );
   };
   
