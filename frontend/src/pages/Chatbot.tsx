@@ -4,6 +4,7 @@ import MessageList from "../components/MessageList";
 import MessageInput from "../components/MessageInput";
 import Spline from "@splinetool/react-spline";
 import CameraComponent from "../components/CameraComponent";
+import AudioRecorder from "../components/AudioRecorder";
 
 export interface IMessages {
   sender: string;
@@ -13,7 +14,7 @@ export interface IMessages {
 const Chatbot = () => {
   const [messages, setMessages] = useState<IMessages[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isFirst, setIsFirst] = useState<boolean>(true);
+  const [isFirst, setIsFirst] = useState<boolean>(false);
 
   const sendMessageToAI = async (message: string) => {
     try {
@@ -43,9 +44,7 @@ const Chatbot = () => {
     setLoading(false);
   };
 
-  const firstQuestion = (text: string) => {
-    setMessages((prev: IMessages[]) => [...prev, { sender: "ai", text }]);
-  };
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -61,7 +60,7 @@ const Chatbot = () => {
       const formData = new FormData();
       formData.append("image", imageBlob, "photo.png");
   
-      const response = await fetch("https://your-backend-api.com/upload", {
+      const response = await fetch("http://localhost/api/user/impression", {
         method: "POST",
         body: formData,
       });
@@ -79,13 +78,13 @@ const Chatbot = () => {
   return (
     <>
       {!isFirst && (
-        <div className="flex flex-col h-screen w-[100%] max-w-[1900px] m-auto">
+        <div className="flex flex-col h-screen w-[100%] max-w-[1400px] m-auto">
           <MessageList
             messages={messages}
             loading={loading}
-            onSend={firstQuestion}
           />
-          <MessageInput onSend={handleSend} loading={loading}/>
+          <MessageInput messages={messages} onSend={handleSend} loading={loading} />
+          {/* <AudioRecorder/> */}
         </div>
         
       )}
