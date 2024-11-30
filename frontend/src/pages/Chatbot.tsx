@@ -85,7 +85,7 @@ const Chatbot = () => {
             loading={loading}
             onSend={firstQuestion}
           />
-          <MessageInput onSend={handleSend} />
+          <MessageInput onSend={handleSend} loading={loading}/>
         </div>
         
       )}

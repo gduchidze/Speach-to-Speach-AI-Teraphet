@@ -30,13 +30,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, onSend }) 
         {messages.map((message, index: number) => (
           <div
             key={index}
-            className={`flex flex-col w-fit max-w-[45%] break-words rounded-lg p-2 text-[1rem] ${
+            className={`flex input-wrapper flex-col w-fit max-w-[45%] break-words rounded-lg p-2 text-[1rem] css-typing ${
               message.sender === "user"
                 ? "user-message  text-black ml-auto" 
                 : "ai-message text-black mr-auto" 
             }`}
           >
-            {message.sender === "user" ? <div className="flex flex-col-reverse ">{message.text} <img src="user1.svg"  alt="User" className="w-6 h-6 self-end"/></div> : <div className="flex flex-col-reverse ">{message.text} <img src="robot.svg"  alt="AI" className="w-6 h-6"/></div>  }
+            {message.sender === "user" ? <div className="flex flex-col-reverse"><p className="text-[0.6rem] sm:text-[1rem] lg:text-[1.2rem]">{message.text}</p> <img src="user1.svg"  alt="User" className="w-6 h-6 self-end md:h-8 md:w-9 lg:h-10 lg:w-10"/></div> : 
+            <div className="flex flex-col-reverse "><p className="text-[0.6rem] sm:text-[1rem] lg:text-[1.2rem]">{message.text}</p> <img src="robot.svg"  alt="AI" className="w-6 h-6 md:h-8 md:w-9 lg:h-10 lg:w-10"/></div>  }
           </div>
         ))}
         {loading && <div className="flex items-center text-center gap-2 mr-auto text-gray-600">
