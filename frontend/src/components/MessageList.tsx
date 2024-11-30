@@ -21,12 +21,12 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading }) => {
 
     return (
       <section className="list-box mb-3 px-10 py-5 overflow-y-auto overflow-x-hidden h-screen flex flex-col  gap-2 place-content-end">
-        {messages.length == 0 && 
+        {/* {messages.length == 0 && 
           <div className="h-screen flex flex-col items-center justify-center gap-3">
             <img src="question.svg" alt="AI question : " className="w-14 h-14 sm:w-28 sm:h-28 lg:w-40 lg:h-40"/>
             <h1 className="text-gray-500 text-[0.6rem] sm:text-[1rem] lgtext-[1.4rem] font-bold">How can I help you today?</h1>
           </div>
-        }
+        } */}
         {messages.map((message, index: number) => (
           <div
             key={index}
