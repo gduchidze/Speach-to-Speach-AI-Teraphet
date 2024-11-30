@@ -1,0 +1,159 @@
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+from typing import Optional, Dict
+import os
+from pathlib import Path
+
+from chatbot.spaech.chatbot_client import EmotionAwareBot
+
+speech_service_router = APIRouter()
+speech_service = EmotionAwareBot()
+
+# Data directory setup
+DATA_DIR = Path("./data")
+IMAGES_DIR = DATA_DIR / "images"
+AUDIO_DIR = DATA_DIR / "audio"
+
+# Create directories if they don't exist
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+
+class InitialResponse(BaseModel):
+    analysis: Dict
+    text_response: str
+    audio_response: Optional[str]
+
+class InteractionResponse(BaseModel):
+    text_response: str
+    audio_response: Optional[str]
+    emotion_analysis: Dict
+
+async def save_uploaded_file(file: UploadFile, directory: Path) -> Path:
+    """Save an uploaded file and return its path"""
+    file_path = directory / file.filename
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    return file_path
+
+@speech_service_router.post("/initial-interaction", response_model=InitialResponse)
+async def initial_interaction(image: UploadFile = File(...)):
+    """
+    Handle initial interaction with user's image
+    """
+    try:
+        # Save uploaded image
+        image_path = await save_uploaded_file(image, IMAGES_DIR)
+
+        # Process initial interaction
+        result = speech_service.process_interaction(
+            image_path=str(image_path),
+            text_query=None
+        )
+
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+
+        response = InitialResponse(
+            analysis=result["face_analysis"],
+            text_response=result["text_response"],
+            audio_response=result["audio_response"]
+        )
+
+        return jsonable_encoder(response)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@speech_service_router.post("/audio-interaction", response_model=InteractionResponse)
+async def process_audio(
+    audio: UploadFile = File(...),
+    image: Optional[UploadFile] = File(None)
+):
+    """
+    Process audio input and optional image for continuous interaction
+    """
+    try:
+        # Save uploaded audio
+        audio_path = await save_uploaded_file(audio, AUDIO_DIR)
+
+        # Save image if provided
+        image_path = None
+        if image:
+            image_path = await save_uploaded_file(image, IMAGES_DIR)
+
+        # Process the interaction
+        result = speech_service.process_audio_file(
+            audio_path=str(audio_path),
+            image_path=str(image_path) if image_path else None
+        )
+
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+
+        response = InteractionResponse(
+            text_response=result["text_response"],
+            audio_response=result["audio_response"],
+            emotion_analysis=result["face_analysis"]
+        )
+
+        return jsonable_encoder(response)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@speech_service_router.get("/conversation-history")
+async def get_conversation_history():
+    """
+    Retrieve conversation history
+    """
+    try:
+        history = speech_service.get_conversation_context(last_n=10)  # Get last 10 messages
+        return jsonable_encoder({"history": history})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from api.endpoints import router
+from chatbot.text.endpoints import text_service_router
+from chatbot.speech.endpoints import speech_service_router  # New import
+
+app = FastAPI()
+
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(router, prefix="/api")
+app.include_router(text_service_router, prefix="/text-service")
+app.include_router(speech_service_router, prefix="/speech-service")  # New router
+
+
+
+
+# Initial interaction
+files = {'image': ('image.jpg', open('user_image.jpg', 'rb'))}
+response = requests.post('http://your-server/speech-service/initial-interaction', files=files)
+
+# Audio interaction
+files = {
+    'audio': ('audio.wav', open('user_audio.wav', 'rb')),
+    'image': ('image.jpg', open('user_image.jpg', 'rb'))  # Optional
+}
+response = requests.post('http://your-server/speech-service/audio-interaction', files=files)
+
+# Get conversation history
+response = requests.get('http://your-server/speech-service/conversation-history')
