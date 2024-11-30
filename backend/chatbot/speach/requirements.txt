@@ -1,0 +1,13 @@
+python-dotenv
+langchain-openai
+deepface
+deepgram-sdk
+langchain-core
+uuid
+pydub
+fastapi
+uvicorn
+typing-extensions
+opencv-python-headless
+uvicorn
+fastapi
