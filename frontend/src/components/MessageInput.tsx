@@ -4,11 +4,12 @@ import { MdKeyboardVoice } from "react-icons/md";
 import SpeakerContainer from "./SpeakerContainer";
 
 interface MessageInputProps {
+  messages:string;
   onSend: (text: string, talking:boolean) => void; // ფუნქცია, რომელიც იღებს ტექსტს
   loading: boolean; // მესიჯის გაგზავნის პროცესის მანიშნებელი
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSend, loading }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ messages, onSend, loading }) => {
   const [input, setInput] = useState<string>(""); 
   const [rows, setRows] = useState<number>(1);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
