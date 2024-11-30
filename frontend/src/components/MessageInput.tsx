@@ -2,19 +2,20 @@ import React, { useEffect, useRef, useState } from "react";
 import { IoIosSend } from "react-icons/io";
 import { MdKeyboardVoice } from "react-icons/md";
 import SpeakerContainer from "./SpeakerContainer";
+import { IMessages } from "../pages/Chatbot";
 
 interface MessageInputProps {
-  onSend: (text: string, talking:boolean) => void; // ფუნქცია, რომელიც იღებს ტექსტს
+  setMessages:(obj:IMessages) => void;
+  onSend: (text: string) => void; // ფუნქცია, რომელიც იღებს ტექსტს
   loading: boolean; // მესიჯის გაგზავნის პროცესის მანიშნებელი
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({  onSend, loading }) => {
+const MessageInput: React.FC<MessageInputProps> = ({setMessages, onSend, loading }) => {
   const [input, setInput] = useState<string>(""); 
   const [rows, setRows] = useState<number>(1);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [isTalking, setIsTalking] = useState<boolean>(false);
 
-  
   // ტექსტარეას ავტომატური ზომის ცვლილება
   useEffect(() => {
     if (textareaRef.current) {
@@ -23,20 +24,12 @@ const MessageInput: React.FC<MessageInputProps> = ({  onSend, loading }) => {
       textareaRef.current.style.height = `${Math.min(scrollHeight, 120)}px`; 
       setRows(Math.min(Math.floor(scrollHeight / 24), 5)); 
     }
-
-  }, [input, localStorage]);
+  }, [input]);
 
   // გაგზავნის ფუნქცია
   const handleSend = () => {
     if (input.trim() !== "") {
-      const audioData: string | null = localStorage.getItem("audio");
-      const responseFromLocal: string | null | JSON = audioData ? JSON.parse(audioData) : null;
-       if(responseFromLocal == "true"){
-         onSend(input, true);
-       }else{
-        localStorage.setItem("audio", JSON.stringify(false));
-        onSend(input, false);
-       }
+      onSend(input);
       setInput("");
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
@@ -47,7 +40,7 @@ const MessageInput: React.FC<MessageInputProps> = ({  onSend, loading }) => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); 
+      e.preventDefault(); // გადახტომის თავიდან აცილება
       handleSend();
     }
   };
@@ -94,7 +87,7 @@ const MessageInput: React.FC<MessageInputProps> = ({  onSend, loading }) => {
           </div>
         </div>
       </div>
-      {isTalking && <SpeakerContainer changeTalking={changeTalkingMode}/>}
+      {isTalking && <SpeakerContainer setMessages={setMessages}  changeTalking={changeTalkingMode}/>}
     </div>
   );
 };

@@ -7,7 +7,6 @@ import Spline from "@splinetool/react-spline";
 export interface IMessages {
   sender: string;
   text: string;
-  isTalking?:boolean;
 }
 
 const Chatbot = () => {
@@ -35,20 +34,21 @@ const Chatbot = () => {
     }
   };
 
-  const handleSend = async (text: string, talking : boolean) => {
+  const handleSend = async (text: string) => {
     console.log(text);
 
-    const userMessage = { sender: "user", text, isTalking: talking };
+    const userMessage = { sender: "user", text};
     setMessages((prev: IMessages[]) => [...prev, userMessage]);
 
     setLoading(true);
 
     const aiResponse = await sendMessageToAI(text);
-    const aiMessages = { sender: "ai", text: aiResponse, isTalking: talking };
-    
+    const aiMessages = { sender: "ai", text: aiResponse};
+
     setMessages((prev: IMessages[]) => [...prev, aiMessages]);
     setLoading(false);
   };
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -56,28 +56,11 @@ const Chatbot = () => {
     }, 4000);
   }, []);
 
-  const handleCapture = async (imageBlob: Blob) => {
-    console.log("Captured Image Blob:", imageBlob);
 
-    // ბლობის გაგზავნა ბექენდისთვის
-    try {
-      const formData = new FormData();
-      formData.append("image", imageBlob, "photo.png");
 
-      const response = await fetch("http://localhost/api/user/impression", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        console.log("Image uploaded successfully!");
-      } else {
-        console.error("Failed to upload image.");
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    }
-  };
+  const setToMessages=(message:IMessages)=>{
+    setMessages((prev: IMessages[]) => [...prev, message]);
+  }
 
   return (
     <>
@@ -85,16 +68,15 @@ const Chatbot = () => {
         <div className="flex flex-col h-screen w-[100%] max-w-[1400px] m-auto">
           <MessageList messages={messages} loading={loading} />
           <MessageInput
+            setMessages={setToMessages}
             onSend={handleSend}
             loading={loading}
           />
-          {/* <AudioRecorder/> */}
         </div>
       )}
       {isFirst && (
         <div className=" h-screen w-[100%] m-auto">
           <Spline scene="https://prod.spline.design/IBgfdspYaqFU2Wk3/scene.splinecode" />
-          {/* <CameraComponent onCapture={handleCapture} /> */}
         </div>
       )}
     </>
