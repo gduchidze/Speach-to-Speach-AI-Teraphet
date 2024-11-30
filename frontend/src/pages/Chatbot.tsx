@@ -4,6 +4,7 @@ import MessageList from "../components/MessageList";
 import MessageInput from "../components/MessageInput";
 import Spline from "@splinetool/react-spline";
 import CameraComponent from "../components/CameraComponent";
+import AudioRecorder from "../components/AudioRecorder";
 
 export interface IMessages {
   sender: string;
@@ -86,6 +87,7 @@ const Chatbot = () => {
             onSend={firstQuestion}
           />
           <MessageInput onSend={handleSend} loading={loading}/>
+          {/* <AudioRecorder/> */}
         </div>
         
       )}
