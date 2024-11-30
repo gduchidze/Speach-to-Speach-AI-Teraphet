@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import MessageList from "../components/MessageList";
 import MessageInput from "../components/MessageInput";
 import Spline from "@splinetool/react-spline";
+import CameraComponent from "../components/CameraComponent";
 
 export interface IMessages {
   sender: string;
@@ -52,6 +53,29 @@ const Chatbot = () => {
     }, 4000);
   }, []);
 
+  const handleCapture = async (imageBlob: Blob) => {
+    console.log("Captured Image Blob:", imageBlob);
+  
+    // ბლობის გაგზავნა ბექენდისთვის
+    try {
+      const formData = new FormData();
+      formData.append("image", imageBlob, "photo.png");
+  
+      const response = await fetch("https://your-backend-api.com/upload", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        console.log("Image uploaded successfully!");
+      } else {
+        console.error("Failed to upload image.");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
+  
   return (
     <>
       {!isFirst && (
@@ -63,10 +87,12 @@ const Chatbot = () => {
           />
           <MessageInput onSend={handleSend} />
         </div>
+        
       )}
       {isFirst && (
         <div className=" h-screen w-[100%] m-auto">
            <Spline scene="https://prod.spline.design/IBgfdspYaqFU2Wk3/scene.splinecode" />
+           {/* <CameraComponent onCapture={handleCapture} /> */}
         </div>
       )}
     </>
