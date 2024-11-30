@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-RUN pip install python-dotenv langchain-openai deepface deepgram-sdk playsound langchain-core uuid pydub fastapi uvicorn typing-extensions opencv-python-headless uvicorn fastapi
+RUN pip install python-dotenv langchain-openai deepface deepgram-sdk langchain-core uuid pydub fastapi uvicorn typing-extensions opencv-python-headless uvicorn fastapi
 
 
 COPY . .
