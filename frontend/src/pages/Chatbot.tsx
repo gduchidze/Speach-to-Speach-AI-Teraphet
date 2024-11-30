@@ -3,12 +3,11 @@ import { useEffect, useState } from "react";
 import MessageList from "../components/MessageList";
 import MessageInput from "../components/MessageInput";
 import Spline from "@splinetool/react-spline";
-import CameraComponent from "../components/CameraComponent";
-import AudioRecorder from "../components/AudioRecorder";
 
 export interface IMessages {
   sender: string;
   text: string;
+  talking:boolean;
 }
 
 const Chatbot = () => {
@@ -29,16 +28,16 @@ const Chatbot = () => {
     }
   };
 
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, talking:boolean) => {
     console.log(text);
 
-    const userMessage = { sender: "user", text };
+    const userMessage = { sender: "user", text, talking};
     setMessages((prev: IMessages[]) => [...prev, userMessage]);
 
     setLoading(true);
 
     const aiResponse = await sendMessageToAI(text);
-    const aiMessages = { sender: "ai", text: aiResponse };
+    const aiMessages = { sender: "ai", text: aiResponse, talking };
 
     setMessages((prev: IMessages[]) => [...prev, aiMessages]);
     setLoading(false);
@@ -83,8 +82,7 @@ const Chatbot = () => {
             messages={messages}
             loading={loading}
           />
-          <MessageInput messages={messages} onSend={handleSend} loading={loading} />
-          {/* <AudioRecorder/> */}
+          <MessageInput onSend={handleSend} loading={loading} />
         </div>
         
       )}

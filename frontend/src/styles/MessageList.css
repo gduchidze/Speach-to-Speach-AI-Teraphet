@@ -1,6 +1,6 @@
 /* WebKit-based browsers (Chrome, Edge, Safari, etc.) */
 ::-webkit-scrollbar {
-    width: 4px; /* Scrollbar width */
+    width: 0px; /* Scrollbar width */
 }
 
 ::-webkit-scrollbar-track {
@@ -17,9 +17,19 @@
 
 /* Firefox-specific */
 .list-box {
-    scrollbar-width: thin; /* "auto" or "thin" */
-    scrollbar-color: #888 #f1f1f1; /* thumb color and track color */
-}
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .user-message, .ai-message {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  .break-words {
+    word-break: break-word;
+  }
+  
 
 .user-message{
     animation: messageUser .3s ease-in-out;

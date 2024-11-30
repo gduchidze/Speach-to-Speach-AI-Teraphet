@@ -22,66 +22,60 @@ const AudioRecorder: React.FC = () => {
   const checkSilence = () => {
     if (analyserNodeRef.current && dataArrayRef.current) {
       analyserNodeRef.current.getByteTimeDomainData(dataArrayRef.current);
-      // მონაცემების მაქსიმალური ამპლიტუდის პოვნა
       const maxAmplitude = Math.max(...dataArrayRef.current);
-      const silenceThreshold = 130; // სიჩუმის ზღურბლი
-  
-      // სიჩუმის შემოწმება
+      const silenceThreshold = 130;
+
       if (maxAmplitude < silenceThreshold) {
-        // თუ სიჩუმეა, დაიწყე ტაიმერი ჩაწერის გაჩერებისთვის
         if (!silenceTimeoutRef.current) {
           silenceTimeoutRef.current = setTimeout(() => {
             console.log("Silence detected, stopping recording...");
             stopRecording();
-          }, 2000); // 2 წამის სიჩუმე
+          }, 2000);
         }
       } else {
-        // თუ ხმა კვლავ არის, ტაიმერი გააუქმე
         if (silenceTimeoutRef.current) {
           clearTimeout(silenceTimeoutRef.current);
           silenceTimeoutRef.current = null;
         }
       }
-  
-      // მონიტორინგი კვლავ განაგრძე
+
       requestAnimationFrame(checkSilence);
     }
   };
-  
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioStreamRef.current = stream;
       mediaRecorderRef.current = new MediaRecorder(stream);
-  
-      // წინა ჩაწერის მონაცემების გასუფთავება
+
       setAudioBlob(null);
       if (audioUrl) {
-        URL.revokeObjectURL(audioUrl); // წინა URL-ის გაუქმება
+        URL.revokeObjectURL(audioUrl);
         setAudioUrl(null);
       }
-  
+
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
-  
+
       const source = audioContext.createMediaStreamSource(stream);
       const analyserNode = audioContext.createAnalyser();
       analyserNode.fftSize = 2048;
-  
+
       source.connect(analyserNode);
       analyserNodeRef.current = analyserNode;
-  
+
       const dataArray = new Uint8Array(analyserNode.fftSize);
       dataArrayRef.current = dataArray;
-  
+
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          setAudioBlob(event.data); // ახალი ჩაწერის შენახვა
+          setAudioBlob(event.data);
           const newAudioUrl = URL.createObjectURL(event.data);
-          setAudioUrl(newAudioUrl); // ახალი URL-ის შექმნა
+          setAudioUrl(newAudioUrl);
         }
       };
-  
+
       mediaRecorderRef.current.start();
       setIsRecording(true);
       checkSilence();
@@ -89,7 +83,6 @@ const AudioRecorder: React.FC = () => {
       console.error("Error starting recording: ", error);
     }
   };
-  
 
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
@@ -103,7 +96,9 @@ const AudioRecorder: React.FC = () => {
       silenceTimeoutRef.current = null;
     }
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      if (audioContextRef.current.state !== "closed") {
+        audioContextRef.current.close();
+      }
       audioContextRef.current = null;
     }
     setIsRecording(false);
@@ -131,17 +126,21 @@ const AudioRecorder: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className='flex flex-col items-center justify-center gap-3 w-[100%]'>
       <button onClick={isRecording ? stopRecording : startRecording}>
-        {isRecording ? 'Stop Recording' : 'Start Recording'}
+        <div className='flex flex-col items-center'>
+          {isRecording ? <p>Stop Recording</p> : <p>Start Recording</p>}
+          {isRecording ? <img src="stop.svg" alt="Stop recording" className='w-9 h-9'/> : <img src='start.svg' alt='Start recording' className='w-9 h-9' />}
+        </div>
       </button>
       {audioBlob && !isRecording && (
-        <div>
+        <div className='flex flex-col items-center'>
+          <p>If you want to listen to the audio:</p>
           <audio controls>
             <source src={URL.createObjectURL(audioBlob)} type="audio/wav" />
             Your browser does not support the audio element.
           </audio>
-          <button onClick={uploadAudio}>Upload Audio</button>
+          <img src="upload.svg" alt="Upload voice" onClick={uploadAudio} className='w-9 h-9'/>
         </div>
       )}
     </div>
