@@ -6,12 +6,13 @@ from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from duckduckgo_search import DDGS
 from deepface import DeepFace
-from deepgram import DeepgramClient, SpeakOptions
+from deepgram import DeepgramClient, SpeakOptions, PrerecordedOptions
 from playsound import playsound
 import json
 import requests
 from bs4 import BeautifulSoup
 import re
+
 
 load_dotenv()
 
@@ -88,26 +89,106 @@ class DeepgramTTS:
             return None
 
 
+class SpeechToText:
+    def __init__(self):
+        self.deepgram = DeepgramClient(api_key=os.getenv("DEEPGRAM_API_KEY"))
+
+    def transcribe_file(self, file_path):
+        try:
+            with open(file_path, 'rb') as audio:
+                source = {
+                    'buffer': audio,
+                    'mimetype': 'audio/wav'
+                }
+
+                options = PrerecordedOptions(
+                    model="nova-2",
+                    smart_format=True,
+                    language="en-US",
+                    punctuate=True
+                )
+
+                response = self.deepgram.listen.rest.v("1").transcribe_file(source, options)
+
+                transcript = response.results.channels[0].alternatives[0].transcript
+                return transcript
+
+        except Exception as e:
+            print(f"Transcription error: {e}")
+            return None
+
+
 class EmotionAwareBot:
     def __init__(self):
         self.openai = ChatOpenAI(model="gpt-4o-mini", api_key=os.getenv("OPENAI_API_KEY"))
         self.deepgram = DeepgramClient(api_key=os.getenv("DEEPGRAM_API_KEY"))
         self.tts = DeepgramTTS()
+        self.stt = SpeechToText()
         self.ddg = DDGS()
         self.scraper = WebScraper()
 
+    def process_audio_file(self, audio_path, image_path=None):
+        text_query = self.stt.transcribe_file(audio_path)
+
+        if text_query:
+            print(f"Transcribed text: {text_query}")
+            return self.process_interaction(
+                image_path=image_path,
+                text_query=text_query
+            )
+        return "Failed to transcribe audio"
+
     def analyze_image(self, image_path):
         try:
-            result = DeepFace.analyze(image_path, actions=['emotion'])
+            result = DeepFace.analyze(image_path, actions=['emotion', 'age', 'gender'])
             dominant_emotion = result[0]['dominant_emotion']
-            return dominant_emotion
+            age = result[0]['age']
+            gender = result[0]['gender']
+            gender_probability = result[0]['gender_probability']
+
+            return {
+                'emotion': dominant_emotion,
+                'age': age,
+                'gender': gender,
+                'gender_probability': round(gender_probability, 2)
+            }
         except Exception as e:
-            print(f"Error in emotion detection: {e}")
-            return "neutral"
+            print(f"Error in face analysis: {e}")
+            return {
+                'emotion': 'neutral',
+                'age': None,
+                'gender': None,
+                'gender_probability': None
+            }
+
+    def summarize_for_search(self, text, max_length=100):
+        try:
+            prompt = f"""
+            Summarize the following text into a short search query (max {max_length} characters):
+            {text}
+            Make the summary focused on the key topic and searchable terms.
+            """
+
+            response = self.openai.invoke([
+                SystemMessage(content="You are a helpful assistant that creates concise search queries."),
+                HumanMessage(content=prompt)
+            ])
+
+            summary = response.content.strip()
+            if len(summary) > max_length:
+                summary = summary[:max_length].rsplit(' ', 1)[0]
+
+            return summary
+        except Exception as e:
+            print(f"Summarization error: {e}")
+            return text[:max_length]
 
     def search_duckduckgo(self, query, max_results=3):
         try:
-            results = list(self.ddg.text(query, max_results=max_results))
+            search_query = self.summarize_for_search(query)
+            print(f"Searching for: {search_query}")
+
+            results = list(self.ddg.text(search_query, max_results=max_results))
             enhanced_results = []
 
             for result in results:
@@ -158,14 +239,19 @@ class EmotionAwareBot:
         return response.content
 
     def process_interaction(self, image_path=None, text_query=None):
-        emotion = "neutral"
+        analysis_result = {
+            'emotion': 'neutral',
+            'age': None,
+            'gender': None,
+            'gender_probability': None
+        }
 
         if image_path:
-            emotion = self.analyze_image(image_path)
-            print(f"Detected emotion: {emotion}")
+            analysis_result = self.analyze_image(image_path)
+            print(f"Face analysis results: {analysis_result}")
 
         if text_query:
-            response_text = self.process_query(text_query, emotion)
+            response_text = self.process_query(text_query, analysis_result['emotion'])
             print(f"User query: {text_query}")
             print(f"AI response: {response_text}")
 
@@ -173,28 +259,27 @@ class EmotionAwareBot:
             return {
                 "text_response": response_text,
                 "audio_response": audio_file,
-                "detected_emotion": emotion
+                "face_analysis": analysis_result
             }
 
         return "No query provided"
 
 
-def main():
-    bot = EmotionAwareBot()
-    # print("\nTesting without image...")
-    # result = bot.process_interaction(
-    #     text_query="I'm feeling anxious about my upcoming presentation"
-    # )
-    # print("Result:", result)
-
-    # If you have an image file, uncomment and use these lines:
-    print("\nTesting with image...")
-    result = bot.process_interaction(
-        image_path="user_image.jpg",
-        text_query="I'm feeling anxious about my upcoming presentation, use maximum 50 words"
-    )
-    print("Result:", result)
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     bot = EmotionAwareBot()
+#
+#     print("\nTest 1: Audio only...")
+#     result = bot.process_audio_file(
+#         audio_path="test_audio.wav"
+#     )
+#     print("Result:", result)
+#
+#     print("\nTest 2: Audio with image...")
+#     result = bot.process_audio_file(
+#         audio_path="emb/test_audio.wav",
+#         image_path="user_image.jpg"
+#     )
+#     print("Result:", result)
+#
+# if __name__ == "__main__":
+#     main()
