@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { IMessages } from "../pages/Chatbot";
 import "../styles/MessageList.css";
 

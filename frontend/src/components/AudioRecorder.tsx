@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bars } from "react-loader-spinner";
-
-
-const AudioRecorder: React.FC = () => {
+import { IMessages } from "../pages/Chatbot";
+interface  AudioRecorderProps{
+  setMessages: (obj:IMessages)=> void;
+}
+const AudioRecorder: React.FC<AudioRecorderProps> = ({setMessages}) => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -129,6 +131,8 @@ const AudioRecorder: React.FC = () => {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recorded-audio.wav");
 
+    console.log(audioBlob);
+    
     try {
       setUploadStatus("Uploading...");
       const response = await fetch("http://localhost:5000/upload_audio", {
@@ -137,12 +141,22 @@ const AudioRecorder: React.FC = () => {
       });
       const data = await response.json();
       console.log("Audio uploaded successfully:", data);
+      
       setUploadStatus("Upload successful");
     } catch (error) {
+      send("user", "გამარჯობა მითხარი რამე")
       console.error("Error uploading audio:", error);
       setUploadStatus("Upload failed");
     }
   };
+
+  const send = (sender:string,text:string ) => {
+    const userMessage: IMessages = { sender, text };
+  
+    // Use setMessages correctly
+    setMessages(userMessage);
+  };
+  
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 w-full">
@@ -152,7 +166,6 @@ const AudioRecorder: React.FC = () => {
       >
         {isRecording ? (
           <>
-
             <Bars
               height="30"
               width="30"
@@ -178,7 +191,9 @@ const AudioRecorder: React.FC = () => {
             Your browser does not support the audio element.
           </audio> */}
           <div className="flex gap-2 items-center">
-            <img src="send.png" alt="Send voice"
+            <img
+              src="send.png"
+              alt="Send voice"
               onClick={uploadAudio}
               className="w-8 h-8 cursor-pointer"
             />
