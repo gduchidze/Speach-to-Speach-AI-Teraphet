@@ -4,31 +4,39 @@ import { MdKeyboardVoice } from "react-icons/md";
 import SpeakerContainer from "./SpeakerContainer";
 
 interface MessageInputProps {
-  messages:string;
   onSend: (text: string, talking:boolean) => void; // ფუნქცია, რომელიც იღებს ტექსტს
   loading: boolean; // მესიჯის გაგზავნის პროცესის მანიშნებელი
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ messages, onSend, loading }) => {
+const MessageInput: React.FC<MessageInputProps> = ({  onSend, loading }) => {
   const [input, setInput] = useState<string>(""); 
   const [rows, setRows] = useState<number>(1);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [isTalking, setIsTalking] = useState<boolean>(false);
 
+  
   // ტექსტარეას ავტომატური ზომის ცვლილება
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"; // ავტომატური ზომა
-      const scrollHeight = textareaRef.current.scrollHeight; // ტექსტარეას სქროლის სიმაღლე
-      textareaRef.current.style.height = `${Math.min(scrollHeight, 120)}px`; // მაქსიმუმ 120px სიმაღლე
-      setRows(Math.min(Math.floor(scrollHeight / 24), 5)); // მაქსიმუმ 5 რიგი
+      textareaRef.current.style.height = "auto"; 
+      const scrollHeight = textareaRef.current.scrollHeight; 
+      textareaRef.current.style.height = `${Math.min(scrollHeight, 120)}px`; 
+      setRows(Math.min(Math.floor(scrollHeight / 24), 5)); 
     }
-  }, [input]);
+
+  }, [input, localStorage]);
 
   // გაგზავნის ფუნქცია
   const handleSend = () => {
     if (input.trim() !== "") {
-      onSend(input, false);
+      const audioData: string | null = localStorage.getItem("audio");
+      const responseFromLocal: string | null | JSON = audioData ? JSON.parse(audioData) : null;
+       if(responseFromLocal == "true"){
+         onSend(input, true);
+       }else{
+        localStorage.setItem("audio", JSON.stringify(false));
+        onSend(input, false);
+       }
       setInput("");
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
@@ -37,10 +45,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ messages, onSend, loading }
     }
   };
 
-  // Enter კლავიშის დამუშავება
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // გადახტომის თავიდან აცილება
+      e.preventDefault(); 
       handleSend();
     }
   };
