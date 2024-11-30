@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { IMessages } from "../pages/Chatbot";
-import { Comment } from "react-loader-spinner";
 import "../styles/MessageList.css";
 
 interface MessageListProps {
@@ -28,20 +27,22 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading }) => {
               : "ai-message text-black mr-auto"
           }`}
         >
-          <div className="flex items-end gap-2">
+          <div className="flex items-start gap-2">
             {message.sender === "ai" && (
               <img
-                src="therapist.png"
+                src="admin.jpg"
                 alt="AI"
-                className="w-4 h-4 md:h-8 md:w-8"
+                className="w-4 h-4 md:h-8 md:w-8 rounded-[50%]"
               />
             )}
-            <p className="text-[0.6rem] sm:text-[1rem] lg:text-[1.2rem] break-words overflow-wrap word-break">{message.text}</p>
+            <p className="text-[0.6rem] sm:text-[1rem] lg:text-[1.2rem] break-words overflow-wrap rounded-lg bg-[#e2e2e20e] p-3">
+              {message.text}
+            </p>
             {message.sender === "user" && (
               <img
-                src="woman.png"
+                src="ducho.jpg"
                 alt="User"
-                className="w-4 h-4 self-end md:h-8 md:w-8"
+                className="w-4 h-4 self-start md:h-8 md:w-8 rounded-[50%]"
               />
             )}
           </div>
@@ -49,17 +50,30 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading }) => {
       ))}
 
       {loading && (
-        <div className="flex items-center text-center gap-2 mr-auto text-gray-600">
-          AI is typing
-          <Comment
-            visible={true}
-            height="25"
-            width="25"
-            ariaLabel="comment-loading"
-            wrapperStyle={{}}
-            color="#fff"
-            backgroundColor="#505050"
-          />
+        <div>
+          <div className="flex items-center space-x-0.5 p-1.5">
+            <div
+              className="w-2 h-2 bg-black rounded-full animate-[elegantBounce_1.4s_infinite]"
+              style={{
+                animationDelay: "0ms",
+                animation: "elegantBounce 1.4s infinite ease-in-out",
+              }}
+            />
+            <div
+              className="w-2 h-2 bg-black rounded-full animate-[elegantBounce_1.4s_infinite]"
+              style={{
+                animationDelay: "200ms",
+                animation: "elegantBounce 1.4s infinite ease-in-out",
+              }}
+            />
+            <div
+              className="w-2 h-2 bg-black rounded-full animate-[elegantBounce_1.4s_infinite]"
+              style={{
+                animationDelay: "400ms",
+                animation: "elegantBounce 1.4s infinite ease-in-out",
+              }}
+            />
+          </div>
         </div>
       )}
       <div ref={messagesEndRef} />
