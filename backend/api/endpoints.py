@@ -32,21 +32,26 @@ async def user_first_impression(image: UploadFile):
         return {"message": str(e)}
 
 
-@router.websocket("/user/wavs")
-async def user_wavs(websocket: WebSocket):
-    await websocket.accept()
-
-    save_dir = "./data/user/wavs"
-    os.makedirs(save_dir, exist_ok=True)
-
-    filename = f"audio_{len(os.listdir(save_dir)) + 1}.wav"
-    file_path = os.path.join(save_dir, filename)
-
-    try:
-        with open(file_path, "wb") as wav_file:
-            while True:
-                data = await websocket.receive_bytes()
-                wav_file.write(data)
-        await websocket.close()
-    except WebSocketDisconnect:
-        print("Websocket connection closed")
+# @router.post("/user/text")
+# async def user_text(text: str):
+#     return {"user_text": text}
+#
+#
+# @router.websocket("/user/audio")
+# async def user_wavs(websocket: WebSocket):
+#     await websocket.accept()
+#
+#     save_dir = "./data/user/wavs"
+#     os.makedirs(save_dir, exist_ok=True)
+#
+#     filename = f"audio_{len(os.listdir(save_dir)) + 1}.wav"
+#     file_path = os.path.join(save_dir, filename)
+#
+#     try:
+#         with open(file_path, "wb") as wav_file:
+#             while True:
+#                 data = await websocket.receive_bytes()
+#                 wav_file.write(data)
+#         await websocket.close()
+#     except WebSocketDisconnect:
+#         print("Websocket connection closed")

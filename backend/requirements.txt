@@ -1,1 +1,6 @@
 fastapi[all]
+requests
+beautifulsoup4
+langchain
+langchain-openai
+duckduckgo-search
