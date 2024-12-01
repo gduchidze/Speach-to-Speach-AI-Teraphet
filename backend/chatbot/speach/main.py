@@ -2,7 +2,7 @@ from typing import Dict
 
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from backend.chatbot.spaech.chatbot_client import EmotionAwareBot, THERAPIST_SYSTEM_PROMPT
+from app.speach.chatbot_client import EmotionAwareBot, THERAPIST_SYSTEM_PROMPT
 
 
 def main():
