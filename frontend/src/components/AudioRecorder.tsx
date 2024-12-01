@@ -124,31 +124,36 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({setMessages}) => {
 
   const uploadAudio = async () => {
     if (!audioBlob) {
-      setUploadStatus("No audio recorded");
-      return;
+        setUploadStatus("No audio recorded");
+        return;
     }
 
     const formData = new FormData();
-    formData.append("audio", audioBlob, "recorded-audio.wav");
+    formData.append("audio_file", audioBlob, "recorded-audio.wav");
 
-    console.log(audioBlob);
-    
+    console.log("the blob is",audioBlob);
+
     try {
-      setUploadStatus("Uploading...");
-      const response = await fetch("http://localhost:5000/upload_audio", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      console.log("Audio uploaded successfully:", data);
-      
-      setUploadStatus("Upload successful");
+        setUploadStatus("Uploading...");
+        const response = await fetch("http://localhost:8000/continuous-response/", {
+            method: "POST",
+            body: formData,
+        });
+        const data = await response.json();
+        console.log("Audio uploaded successfully:", data);
+
+        setUploadStatus("Upload successful");
+        send("ai", data?.text_response)
+        // Play an audio notification
+        // loading-true -> true -> no send voice -> takeresponsefunc-> talk-> loding false -> change url of audio
+        
     } catch (error) {
-      send("user", "გამარჯობა მითხარი რამე")
-      console.error("Error uploading audio:", error);
-      setUploadStatus("Upload failed");
+        send("user", "Something went wrong")
+        console.error("Error uploading audio:", error);
+        setUploadStatus("Upload failed");
     }
-  };
+};
+
 
   const send = (sender:string,text:string ) => {
     const userMessage: IMessages = { sender, text };
@@ -160,6 +165,8 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({setMessages}) => {
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 w-full">
+        
+
       <button
         onClick={isRecording ? () => stopRecording() : startRecording}
         className="flex flex-col items-center"
@@ -185,11 +192,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({setMessages}) => {
 
       {audioBlob && !isRecording && (
         <div className="flex flex-col items-center gap-2">
-          {/* <p>Recorded Audio:</p>
-          <audio controls>
-            <source src={audioUrl || undefined} type="audio/wav" />
-            Your browser does not support the audio element.
-          </audio> */}
+          <p>Recorded Audio:</p>
           <div className="flex gap-2 items-center">
             <img
               src="send.png"

@@ -12,7 +12,7 @@ export interface IMessages {
 const Chatbot = () => {
   const [messages, setMessages] = useState<IMessages[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isFirst, setIsFirst] = useState<boolean>(false);
+  const [isFirst, setIsFirst] = useState<boolean>(true);
 
   const sendMessageToAI = async (message: string) => {
     try {
@@ -64,6 +64,7 @@ const Chatbot = () => {
 
   return (
     <>
+    
       {!isFirst && (
         <div className="flex flex-col h-screen w-[100%] max-w-[1400px] m-auto">
           <MessageList messages={messages} loading={loading} />

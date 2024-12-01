@@ -18,8 +18,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onCapture }) => {
 
         const canvas = canvasRef.current;
         if (canvas) {
-          canvas.width = 300;
-          canvas.height = 300;
+          canvas.width = 500;
+          canvas.height = 500;
           const context = canvas.getContext("2d");
           if (context) {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
